@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: server.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: server.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>
+/**
+ * @typedef {import} http
+ */
+const http = require('http');
+
+const path = require('path');
+
+/**
+ * @typedef {import} app
+ */
+const app = require('./app');
+
+/**
+ * @typedef {import} https
+ */
+const https = require('https');
+
+/**
+ * @typedef {import} app
+ */
+const fs = require('fs');
+
+/**
+ * @typedef {import} mongoose
+ */
+const mongoose = require('mongoose');
+
+/**
+ * @constant options
+ * https certificates
+ */
+// const options = {
+//   key: fs.readFileSync(path.join(process.cwd()+'/resources/certs/key.pem')),
+//   cert: fs.readFileSync(path.join(process.cwd()+'/resources/certs/cert.pem')),
+// };
+
+/**
+ * @type {string|number}
+ */
+const port = process.env.PORT || 3000;
+
+const childProcess = require('child_process');
+
+
+/**
+ * @function - IIFE
+ * deletes existing database collections
+ * due to issues with mongodb atlas connections
+ * need to ensure collections dropped after test
+ */
+(() => {
+  mongoose.connection.collections.users.drop(() => {
+    console.log('user collection deleted');
+  });
+  mongoose.connection.collections.products.drop(() => {
+    console.log('products collection deleted');
+  });
+  
+  /**
+   * @function
+   * @param {String}
+   * @param {Function}
+   * function to call products seeder
+   * once database collection has been dropped
+   */
+function runScript(scriptPath, callback) {
+
+    var invoked = false;
+
+    var process = childProcess.fork(scriptPath);
+
+    process.on('error', function (err) {
+        if (invoked) return;
+        invoked = true;
+        callback(err);
+    });
+
+    process.on('exit', function (code) {
+        if (invoked) return;
+        invoked = true;
+        var err = code === 0 ? null : new Error('exit code ' + code);
+        callback(err);
+    });
+
+}
+
+  runScript('./resources/seeders/products.seeders.js', function (err) {
+      if (err) throw err;
+      console.log('completed executing products.seeder.js');
+      // need to keep server runnning...
+      // process.exit();
+  });
+})();
+
+/**
+ * @function
+ * @param {Function} app
+ */
+const server = http.createServer(app);
+
+/**
+ * @function
+ * @param {string} port
+ */
+server.listen(port);
+
+/**
+ * @function 
+ */
+// https.createServer(options, app).listen(443);</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="Card%2520model%2520%250AUser%2520Model,%2520schemamodule_.html">Card model 
+User Model, schema</a></li><li><a href="module-app.html">app</a></li><li><a href="module-order%2520router.html">order router</a></li><li><a href="products%2520model%2520%250AProduct%2520Model,%2520schemamodule_.html">products model 
+Product Model, schema</a></li><li><a href="router%252520%25250AcheckoutRoutemodule_.html">router 
+checkoutRoute</a></li><li><a href="router%2520%250AproductRoutemodule_.html">router 
+productRoute</a></li><li><a href="User%252520model%252520%25250AUser%252520Model,%252520schemamodule_.html">User model 
+User Model, schema</a></li></ul><h3>Global</h3><ul><li><a href="global.html#-IIFEdeletesexistingdatabasecollectionsduetoissueswithmongodbatlasconnectionsneedtoensurecollectionsdroppedaftertest">- IIFE
+deletes existing database collections
+due to issues with mongodb atlas connections
+need to ensure collections dropped after test</a></li><li><a href="global.html#creates">creates</a></li><li><a href="global.html#done">done</a></li><li><a href="global.html#exit">exit</a></li><li><a href="global.html#mongodb_url">mongodb_url</a></li><li><a href="global.html#options">options</a></li><li><a href="global.html#port">port</a></li><li><a href="global.html#server">server</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
