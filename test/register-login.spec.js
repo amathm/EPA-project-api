@@ -60,7 +60,10 @@ describe('seeding products data to colletion', () => {
                                 assert(createdUser.email === req.body.email);
                             });
                             done();
-                    });
+                    }).catch(err => {
+                        assert.ok(false);
+                        done();
+                    })
             }
         });
     });
